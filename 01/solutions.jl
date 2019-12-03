@@ -14,21 +14,15 @@ function otherFuel(mass::Integer) ::Integer
 end
 
 
-open("input", "r") do f
-   fuel = 0
-   for mass in eachline(f)
-      mass = parse(Int, mass)
-      fuel += calculateFull(mass)
-   end
+open("input", "r") do masses
+   fuel = map(mass -> calculateFull(parse(Int, mass)), eachline(masses))
    print(fuel, "\n")
+   print(sum(fuel), "\n")
 end
 
 
-open("input", "r") do f
-   fuel = 0
-   for mass in eachline(f)
-      mass = parse(Int, mass)
-      fuel += otherFuel(mass)
-   end
+open("input", "r") do masses
+   fuel = map(mass -> otherFuel(parse(Int, mass)), masses)
    print(fuel, "\n")
+   print(sum(fuel), "\n")
 end
