@@ -61,67 +61,112 @@ class Droite:
         self.p1 = p1
         self.p2 = p2
 
+
+    @property
+    def x_min(self):
+        return min(self.p1.x, self.p2.x)
+
+
+    @property
+    def x_max(self):
+        return max(self.p1.x, self.p2.x)
+
+
+    @property
+    def y_min(self):
+        return min(self.p1.y, self.p2.y)
+
+
+    @property
+    def y_max(self):
+        return max(self.p1.y, self.p2.y)
+
+
     def __repr__(self):
         return f'({self.p1}, {self.p2})'
+
 
     def __str__(self):
         return f'({self.p1}, {self.p2})'
 
+
+    def isVertical(self):
+        return self.p1.x == self.p2.x
+
+
     def __or__(self, other):
-        # Vertical line
-        if self.p1.x == self.p2.x:
-            if other.p1.x == other.p2.x:
-                return None
-            else:
-                if other.p1.x <= self.p1.x <= other.p2.x and self.p1.y <= other.p1.y <= self.p2.y:
-                    return self.p1.x, other.p1.y
-                else:
-                    return None
-        # Horizontal line
-        else:
-            if other.p1.y == other.p2.y:
-                return None
-            else:
-                if other.p1.y <= self.p1.y <= other.p2.y and self.p1.x <= other.p1.x <= self.p1.x:
-                    return other.p1.x, self.p1.y
-                else:
-                    return None
+        if self.isVertical() and other.isVertical():
+            return None
+
+        if not self.isVertical() and not other.isVertical():
+            return None
+
+        vertical, horizontal = (self, other) if self.isVertical() else (other, self)
+
+        if horizontal.x_min <= vertical.p1.x <= horizontal.x_max:
+            if vertical.y_min <= horizontal.p1.y <= vertical.y_max:
+                return Point(vertical.p1.x, horizontal.p1.y)
+
+        return None
 
 
 
+def ManhattonDistance(point):
+    return sum(map(abs, point))
 
-if __name__ == '__main__':
-    with open('input', 'r') as f:
-        lines = list(map(lambda l: parse(l), f.readlines()))
 
-    test = '''R75,D30,R83,U83,L12,D49,R71,U7,L72
-            U62,R66,U55,R34,D71,R55,D58,R83'''
-    lines = list(map(lambda l: parse(l), test.splitlines()))
 
-    print(lines)
+def minimumDistance(wire1, wire2):
     p1 = Point(0, 0)
     droites = []
-    for x, y in lines[0]:
+    for x, y in wire1:
         p2 = Point(p1.x + x, p1.y + y)
         droites.append(Droite(p1, p2))
         p1 = p2
-        
+
     print(droites, len(droites))
 
-    minimum = 10000000
+    minimums = []
     p1 = Point(0, 0)
-    for x, y in lines[1]:
+    for x, y in wire2:
         p2 = Point(p1.x + x, p1.y + y)
         d = Droite(p1, p2)
         p1 = p2
         print(d)
 
         for a in droites:
-            i = d | a
-            if i != None:
-                distance = sum(map(abs, i))
+            intersecting_point = d | a
+            if intersecting_point != None:
+                distance = ManhattonDistance(intersecting_point)
                 print(d, a)
-                print(i, distance)
-                minimum = min(minimum, distance)
+                print(intersecting_point, distance)
+                minimums.append(distance)
 
-    print(minimum)
+    print(minimums)
+    minimums.sort()
+    minimums = list(filter(lambda d: d!=0, minimums))
+
+    return minimums[0]
+
+
+
+
+
+if __name__ == '__main__':
+    test = '''R75,D30,R83,U83,L12,D49,R71,U7,L72
+              U62,R66,U55,R34,D71,R55,D58,R83'''
+    wires = list(map(lambda l: parse(l), test.splitlines()))
+
+    print(minimumDistance(*wires))
+
+    test = '''R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51
+              U98,R91,D20,R16,D67,R40,U7,R15,U6,R7'''
+    wires = list(map(lambda l: parse(l), test.splitlines()))
+
+    print(minimumDistance(*wires))
+
+
+    with open('input', 'r') as f:
+        wires = list(map(lambda l: parse(l), f.readlines()))
+
+    print(minimumDistance(*wires))
