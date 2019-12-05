@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from collections import Counter
 from pathlib import Path
 
 
@@ -16,9 +17,11 @@ def twoDigits(values):
     return any(a == b for a, b in zip(values, values[1:]))
 
 
-def twoDigitsOnly(values):
+def hasAPairOfDigits(values, invalid = set((3,5))):
     assert len(values) == 6
-    return not any(a == b == c  for a, b, c in zip(values, values[1:], values[2:]))
+    #return len(invalid & set(Counter(values).values())) == 0
+    c = Counter(values)
+    return 2 in c.values()
 
 
 def increasing(values):
@@ -46,9 +49,9 @@ if __name__ == '__main__':
     print(223450, list(filter(increasing, filter(twoDigits, map(toTuple, [223450])))))
     print(123789, list(filter(increasing, filter(twoDigits, map(toTuple, [123789])))))
 
-    print(112233, list(filter(twoDigitsOnly, filter(increasing, filter(twoDigits, map(toTuple, [112233]))))))
-    print(123444, list(filter(twoDigitsOnly, filter(increasing, filter(twoDigits, map(toTuple, [123444]))))))
-    print(111122, list(filter(twoDigitsOnly, filter(increasing, filter(twoDigits, map(toTuple, [111122]))))))
+    print(112233, list(filter(hasAPairOfDigits, filter(increasing, filter(twoDigits, map(toTuple, [112233]))))))
+    print(123444, list(filter(hasAPairOfDigits, filter(increasing, filter(twoDigits, map(toTuple, [123444]))))))
+    print(111122, list(filter(hasAPairOfDigits, filter(increasing, filter(twoDigits, map(toTuple, [111122]))))))
 
     answer1 = Path('answer1.txt')
     if not answer1.exists():
@@ -64,7 +67,7 @@ if __name__ == '__main__':
     assert len(values) < high - low + 1
     print(len(values))
  
-    # answer 2:
-    values = list(filter(twoDigitsOnly, values))
-    print(*values, sep='\n')
+    # answer 2: 763
+    values = list(filter(hasAPairOfDigits, values))
+    #print(*values, sep='\n')
     print(len(values))
