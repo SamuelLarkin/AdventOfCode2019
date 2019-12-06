@@ -97,38 +97,8 @@ if __name__ == '__main__':
     with open('input', 'r') as f:
         orbits = f.readlines()
 
-    test = '''COM)B
-    B)C
-    C)D
-    D)E
-    E)F
-    B)G
-    G)H
-    D)I
-    E)J
-    J)K
-    K)L'''.splitlines()
-    print(crc(test))
-
     # Answer: 147223
     print(crc(orbits))
-
-
-    test = '''COM)B
-    B)C
-    C)D
-    D)E
-    E)F
-    B)G
-    G)H
-    D)I
-    E)J
-    J)K
-    K)L
-    K)YOU
-    I)SAN'''.splitlines()
-    #crc2(test)
-    print(crc3(test))
 
     # Answer: 340
     print(crc3(orbits))
