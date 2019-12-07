@@ -5,10 +5,11 @@ import numpy as np
 from collections import namedtuple
 
 
-def parseSingleInstruction(m, d):
+def parseSingleInstruction(move):
     """
     Parse a single instruction.
     """
+    m, d = move[0], int(move[1:])
     if m == 'U':
         p2 = (0, d)
     elif m == 'D':
@@ -28,7 +29,7 @@ def parseInstructions(line):
     Parse a all instructions.
     """
     line = line.strip().split(',')
-    line = [ parseSingleInstruction(move[0], int(move[1:])) for move in line ]
+    line = [ parseSingleInstruction(move) for move in line ]
     return line
 
 
@@ -165,27 +166,8 @@ def minimumDistance(wire1, wire2):
 
 
 if __name__ == '__main__':
-    test = '''R75,D30,R83,U83,L12,D49,R71,U7,L72
-              U62,R66,U55,R34,D71,R55,D58,R83'''
-    wires = list(map(lambda l: parseInstructions(l), test.splitlines()))
+    with open('input', 'r') as f:
+        wires = list(map(lambda l: parseInstructions(l), f.readlines()))
 
-    md, steps = minimumDistance(*wires)
-    assert md == 159
-    assert steps == 610
-
-
-    test = '''R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51
-              U98,R91,D20,R16,D67,R40,U7,R15,U6,R7'''
-    wires = list(map(lambda l: parseInstructions(l), test.splitlines()))
-
-    md, steps = minimumDistance(*wires)
-    assert md == 135
-    assert steps == 410
-
-
-    if True:
-        with open('input', 'r') as f:
-            wires = list(map(lambda l: parseInstructions(l), f.readlines()))
-
-        # Answers: 1337 & 65356
-        print(minimumDistance(*wires))
+    # Answers: 1337 & 65356
+    print(minimumDistance(*wires))
