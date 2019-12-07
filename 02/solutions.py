@@ -5,6 +5,11 @@ from copy import deepcopy
 
 
 
+def parse(_input):
+    return list(map(int, _input.split(',')))
+
+
+
 def process(data):
     i=0
     while i < len(data):
@@ -30,7 +35,7 @@ def process(data):
 
 if __name__ == '__main__':
     with open('input', 'r') as f:
-        _data = list(map(int, f.readline().split(',')))
+        _data = parse(f.readline())
 
     data = deepcopy(_data)
     data[1] = 12
@@ -56,6 +61,7 @@ if __name__ == '__main__':
             b -= 1
             break
 
+    print(a, b)
     data = deepcopy(_data)
     data[1] = 33
     data[2] = 76
