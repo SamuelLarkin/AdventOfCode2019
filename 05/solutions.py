@@ -26,8 +26,10 @@ def modes(op):
 
 
 
-def process(pgm, input_):
+def process(pgm, inputs):
     pgm = deepcopy(pgm)
+    if isinstance(inputs, int):
+        inputs = [inputs]
     instruction_pointer = 0
     response = 0xBAD
     while instruction_pointer < len(pgm):
@@ -58,7 +60,7 @@ def process(pgm, input_):
         # take an input value and store it at address 50.
         elif opcode == 3:
             a = pgm[instruction_pointer+1]
-            pgm[a] = input_
+            pgm[a] = inputs.pop()
             instruction_pointer += 2
 
         # Opcode 4 outputs the value of its only parameter. For example, the
@@ -67,7 +69,6 @@ def process(pgm, input_):
             a = pgm[instruction_pointer+1]
             a = pgm[a] if mode1 == 0 else a
             response = a
-            print(response)
             instruction_pointer += 2
 
         # Opcode 5 is jump-if-true: if the first parameter is non-zero, it sets
