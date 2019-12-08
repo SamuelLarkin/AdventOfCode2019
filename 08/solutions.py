@@ -79,6 +79,41 @@ def debug(data, num_image):
 
 
 
+def combine(images):
+    image = np.ones_like(images[0]) * 2
+    for layer in images:
+        image[image == 2] = layer[image == 2]
+    return image
+
+    images = images.transpose((1,2,0))
+    image = []
+    for row in images:
+        for column in row: 
+            pixels = list(filter(lambda p: p!=2, column))
+            pixel = 2
+            if len(pixels) > 0:
+                pixel = pixels[0]
+            image.append(pixel)
+
+    return image
+
+
+
+def partII(data, num_image):
+    images = createImages(data, num_image)
+
+    image = combine(images)
+    for line in image:
+        for p in line:
+            print(' ' if p == 0 else '%', sep='', end='')
+        print('')
+    print('')
+
+
+
+
+
+
 
 if __name__ == '__main__':
     with open('input', 'r') as f:
@@ -92,3 +127,6 @@ if __name__ == '__main__':
 
     # Answer: 2975
     print('Answer PartI:', answer)
+
+    # Answer: EHRUE
+    partII(data, num_image)
