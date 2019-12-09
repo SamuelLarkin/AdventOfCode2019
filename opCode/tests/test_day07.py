@@ -2,7 +2,7 @@
 
 import unittest
 
-from interpreter import amplify
+from amplifier import amplify
 
 
 
