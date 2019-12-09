@@ -1,2 +1,2 @@
 from .interpreter import Interpreter
-from .interpreter import amplify
+from .amplifier import amplify
