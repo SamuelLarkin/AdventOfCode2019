@@ -8,7 +8,7 @@ from parser import parse
 
 
 
-class TestDay09(unittest.TestCase):
+class TestInterpreter(unittest.TestCase):
     def test1(self):
         """
         Takes no input and produces a copy of itself as output.
