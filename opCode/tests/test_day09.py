@@ -16,7 +16,8 @@ class TestDay09(unittest.TestCase):
         pgm = parse('109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99')
         interpreter = Interpreter(pgm)
         #import pudb; pudb.set_trace()
-        self.assertEqual(interpreter(), [])
+        #self.assertEqual(interpreter(), [])
+        self.assertEqual(interpreter.diagnostic(), [109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99])
 
 
     def test2(self):

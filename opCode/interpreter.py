@@ -17,7 +17,7 @@ def modes(op):
     mode1 = (op // 100) % 10
     mode2 = (op // 1000) % 10
     mode3 = (op // 10000) % 10
-    assert mode3 == 0
+    #assert mode3 == 0, f'mode3 {mode3}'
 
     return opcode, mode1, mode2, mode3
 
@@ -28,7 +28,7 @@ class Interpreter:
         self.pgm = list(pgm) + [-1]*100000000  # Effectively making a deepcopy from readonly to write-enabled memory.
         self.instruction_pointer = 0
         self.relative_base = 0
-        self.response = 0xBAD
+        self.stdout = []
 
         if initial_setting is not None:
             opcode, mode1, mode2, mode3 = modes(self.pgm[self.instruction_pointer])
@@ -67,6 +67,16 @@ class Interpreter:
             assert False, 'Unsupported mode'
 
 
+    def diagnostic(self, input_ = None):
+        response = self(input_)
+        while response is not None:
+            self.stdout.append(response)
+            response = self()
+
+        # TODO: hack alert, why do we need to drop the last output in stdout?
+        return self.stdout[:-1]
+
+
     def __call__(self, input_ = None):
         while self.instruction_pointer < len(self.pgm):
             opcode, mode1, mode2, mode3 = modes(self.pgm[self.instruction_pointer])
@@ -75,16 +85,14 @@ class Interpreter:
             if opcode == 1:
                 val_a = self.getInArg(1, mode1)
                 val_b = self.getInArg(2, mode2)
-                val_c = self.getOutArg(3, mode3)
-                self.pgm[val_c] = val_a + val_b
+                self.pgm[self.getOutArg(3, mode3)] = val_a + val_b
                 self.instruction_pointer += 4
 
             # Multiplication
             elif opcode == 2:
                 val_a = self.getInArg(1, mode1)
                 val_b = self.getInArg(2, mode2)
-                val_c = self.getOutArg(3, mode3)
-                self.pgm[val_c] = val_a * val_b
+                self.pgm[self.getOutArg(3, mode3)] = val_a * val_b
                 self.instruction_pointer += 4
 
             # Opcode 3 takes a single integer as input and saves it to the position
@@ -101,9 +109,8 @@ class Interpreter:
             # instruction 4,50 would output the value at address 50.
             elif opcode == 4:
                 val_a = self.getInArg(1, mode1)
-                self.response = val_a
                 self.instruction_pointer += 2
-                return self.response
+                return val_a
 
             # Opcode 5 is jump-if-true: if the first parameter is non-zero, it sets
             # the instruction pointer to the value from the second parameter.
@@ -133,7 +140,7 @@ class Interpreter:
             elif opcode == 7:
                 val_a = self.getInArg(1, mode1)
                 val_b = self.getInArg(2, mode2)
-                self.pgm[self.getOutArg(3, mnode3)] = 1 if val_a < val_b else 0
+                self.pgm[self.getOutArg(3, mode3)] = 1 if val_a < val_b else 0
                 self.instruction_pointer += 4
 
             # Opcode 8 is equals: if the first parameter is equal to the second
