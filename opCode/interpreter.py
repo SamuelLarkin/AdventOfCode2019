@@ -25,7 +25,7 @@ def modes(op):
 
 class Interpreter:
     def __init__(self, pgm, initial_setting = None):
-        self.pgm = list(pgm) + [-1]*10000000  # Effectively making a deepcopy from readonly to write-enabled memory.
+        self.pgm = list(pgm) + [-1]*100000000  # Effectively making a deepcopy from readonly to write-enabled memory.
         self.instruction_pointer = 0
         self.relative_base = 0
         self.response = 0xBAD
@@ -43,14 +43,26 @@ class Interpreter:
                 assert False, 'Can only initialize if the first instruction is a read opcode.'
 
 
-    def getArg(self, offset, mode):
-        a = self.pgm[self.instruction_pointer+1]
+    def getInArg(self, offset, mode):
+        a = self.pgm[self.instruction_pointer+offset]
+        if mode == 0:
+            return self.pgm[a]
+        elif mode == 1:
+            return a
+        elif mode == 2:
+            return self.pgm[self.relative_base + a]
+        else:
+            assert False, 'Unsupported mode'
+
+
+    def getOutArg(self, offset, mode):
+        a = self.pgm[self.instruction_pointer+offset]
         if mode == 0:
             return a
         elif mode == 1:
-            return self.pgm[a]
+            return a
         elif mode == 2:
-            return self.pgm[self.relative_base + a]
+            return self.relative_base + a
         else:
             assert False, 'Unsupported mode'
 
@@ -61,17 +73,17 @@ class Interpreter:
 
             # Addition
             if opcode == 1:
-                val_a = self.getArg(1, mode1)
-                val_b = self.getArg(2, mode2)
-                val_c = self.getArg(3, mode3)
+                val_a = self.getInArg(1, mode1)
+                val_b = self.getInArg(2, mode2)
+                val_c = self.getOutArg(3, mode3)
                 self.pgm[val_c] = val_a + val_b
                 self.instruction_pointer += 4
 
             # Multiplication
             elif opcode == 2:
-                val_a = self.getArg(1, mode1)
-                val_b = self.getArg(2, mode2)
-                val_c = self.getArg(3, mode3)
+                val_a = self.getInArg(1, mode1)
+                val_b = self.getInArg(2, mode2)
+                val_c = self.getOutArg(3, mode3)
                 self.pgm[val_c] = val_a * val_b
                 self.instruction_pointer += 4
 
@@ -82,16 +94,14 @@ class Interpreter:
                 if input_ is None:
                     assert False, 'You need to provide and input.'
 
-                a = self.pgm[self.instruction_pointer+1]
-                self.pgm[a] = input_
+                self.pgm[self.getOutArg(1, mode1)] = input_
                 self.instruction_pointer += 2
 
             # Opcode 4 outputs the value of its only parameter. For example, the
             # instruction 4,50 would output the value at address 50.
             elif opcode == 4:
-                a = self.pgm[self.instruction_pointer+1]
-                a = self.pgm[a] if mode1 == 0 else a
-                self.response = a
+                val_a = self.getInArg(1, mode1)
+                self.response = val_a
                 self.instruction_pointer += 2
                 return self.response
 
@@ -99,10 +109,8 @@ class Interpreter:
             # the instruction pointer to the value from the second parameter.
             # Otherwise, it does nothing.
             elif opcode == 5:
-                a = self.pgm[self.instruction_pointer+1]
-                b = self.pgm[self.instruction_pointer+2]
-                val_a = self.pgm[a] if mode1 == 0 else a
-                val_b = self.pgm[b] if mode2 == 0 else b
+                val_a = self.getInArg(1, mode1)
+                val_b = self.getInArg(2, mode2)
                 if val_a != 0:
                     self.instruction_pointer = val_b
                 else:
@@ -112,10 +120,8 @@ class Interpreter:
             # the instruction pointer to the value from the second parameter.
             # Otherwise, it does nothing.
             elif opcode == 6:
-                a = self.pgm[self.instruction_pointer+1]
-                b = self.pgm[self.instruction_pointer+2]
-                val_a = self.pgm[a] if mode1 == 0 else a
-                val_b = self.pgm[b] if mode2 == 0 else b
+                val_a = self.getInArg(1, mode1)
+                val_b = self.getInArg(2, mode2)
                 if val_a == 0:
                     self.instruction_pointer = val_b
                 else:
@@ -125,31 +131,25 @@ class Interpreter:
             # parameter, it stores 1 in the position given by the third parameter.
             # Otherwise, it stores 0.
             elif opcode == 7:
-                a = self.pgm[self.instruction_pointer+1]
-                b = self.pgm[self.instruction_pointer+2]
-                c = self.pgm[self.instruction_pointer+3]
-                val_a = self.pgm[a] if mode1 == 0 else a
-                val_b = self.pgm[b] if mode2 == 0 else b
-                self.pgm[c] = 1 if val_a < val_b else 0
+                val_a = self.getInArg(1, mode1)
+                val_b = self.getInArg(2, mode2)
+                self.pgm[self.getOutArg(3, mnode3)] = 1 if val_a < val_b else 0
                 self.instruction_pointer += 4
 
             # Opcode 8 is equals: if the first parameter is equal to the second
             # parameter, it stores 1 in the position given by the third parameter.
             # Otherwise, it stores 0.
             elif opcode == 8:
-                a = self.pgm[self.instruction_pointer+1]
-                b = self.pgm[self.instruction_pointer+2]
-                c = self.pgm[self.instruction_pointer+3]
-                val_a = self.pgm[a] if mode1 == 0 else a
-                val_b = self.pgm[b] if mode2 == 0 else b
-                self.pgm[c] = 1 if val_a == val_b else 0
+                val_a = self.getInArg(1, mode1)
+                val_b = self.getInArg(2, mode2)
+                self.pgm[self.getOutArg(3, mode3)] = 1 if val_a == val_b else 0
                 self.instruction_pointer += 4
 
             # adjusts the relative base by the value of its only parameter. The
             # relative base increases (or decreases, if the value is negative)
             # by the value of the parameter.
             elif opcode == 9:
-                val_a = self.getArg(1, mode1)
+                val_a = self.getInArg(1, mode1)
                 self.relative_base += val_a
                 self.instruction_pointer += 2
 
