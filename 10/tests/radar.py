@@ -5,6 +5,7 @@ import unittest
 from parser import Position
 from parser import parse
 from radar import lineOfSight
+from radar import lineOfSightRotated
 from radar import lineOfSights
 from radar import radar
 
@@ -16,6 +17,19 @@ class TestLineOfSight(unittest.TestCase):
 
     def test2(self):
         self.assertEqual(lineOfSight(Position(2,4), Position(2,1)), -1.5707963267948966)
+
+
+    '''
+    PartII wants clockwise angles and starting for up aka 0,1.
+    '''
+    def test3_0(self):
+        self.assertEqual(lineOfSightRotated(Position(0,0), Position(0,4)), (4., -1.5707963267948966))
+    def test3_90(self):
+        self.assertEqual(lineOfSightRotated(Position(0,0), Position(4,0)), (4., 0))
+    def test3_180(self):
+        self.assertEqual(lineOfSightRotated(Position(0,0), Position(0,-4)), (4., 1.5707963267948966))
+    def test3_270(self):
+        self.assertEqual(lineOfSightRotated(Position(0,0), Position(-4,0)), (4., 3.141592653589793))
 
 
 
