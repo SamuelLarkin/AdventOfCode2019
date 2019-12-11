@@ -4,10 +4,12 @@ import unittest
 
 from parser import Position
 from parser import parse
+from radar import laser
 from radar import lineOfSight
 from radar import lineOfSightRotated
 from radar import lineOfSights
 from radar import radar
+from radar import LaserBase
 
 
 class TestLineOfSight(unittest.TestCase):
@@ -23,13 +25,17 @@ class TestLineOfSight(unittest.TestCase):
     PartII wants clockwise angles and starting for up aka 0,1.
     '''
     def test3_0(self):
-        self.assertEqual(lineOfSightRotated(Position(0,0), Position(0,4)), (4., -1.5707963267948966))
+        center = Position(8, 3)
+        self.assertEqual(lineOfSightRotated(center, Position(8,1)), LaserBase(phi=-3.141592653589793, r=2.0, x=8, y=1))
     def test3_90(self):
-        self.assertEqual(lineOfSightRotated(Position(0,0), Position(4,0)), (4., 0))
+        center = Position(8, 3)
+        self.assertEqual(lineOfSightRotated(center, Position(10,3)), LaserBase(phi=-1.5707963267948966, r=2.0, x=10, y=3))
     def test3_180(self):
-        self.assertEqual(lineOfSightRotated(Position(0,0), Position(0,-4)), (4., 1.5707963267948966))
+        center = Position(8, 3)
+        self.assertEqual(lineOfSightRotated(center, Position(8,5)), LaserBase(phi=0., r=2.0, x=8, y=5))
     def test3_270(self):
-        self.assertEqual(lineOfSightRotated(Position(0,0), Position(-4,0)), (4., 3.141592653589793))
+        center = Position(8, 3)
+        self.assertEqual(lineOfSightRotated(center, Position(6,3)), LaserBase(phi=1.5707963267948966, r=2.0, x=6, y=3))
 
 
 
@@ -168,3 +174,25 @@ class TestRadar(unittest.TestCase):
         self.assertEqual(len(max_los[1]), 210)
 
 
+
+class TestLaser(unittest.TestCase):
+    def test1(self):
+        def extract(l):
+            return (l.x, l.y)
+
+        data = '''.#....#####...#..
+        ##...##.#####..##
+        ##...#...#.#####.
+        ..#.....X...###..
+        ..#.#.....#....##'''.splitlines()
+        center = Position(8, 3)
+        sequence = laser(center, parse(data))
+        #print(*sequence, sep='\n')
+        self.assertEqual(extract(sequence[0]), (8,1))
+        self.assertEqual(extract(sequence[1]), (9,0))
+        self.assertEqual(extract(sequence[2]), (9,1))
+        self.assertEqual(extract(sequence[3]), (10,0))
+        self.assertEqual(extract(sequence[8]), (15,1))
+
+        self.assertEqual(extract(sequence[9]), (12,2))
+        self.assertEqual(extract(sequence[17]), (4,4))

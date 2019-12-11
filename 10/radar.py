@@ -1,5 +1,25 @@
-from parser import Position
 import cmath
+from collections import namedtuple
+from itertools import cycle
+from itertools import groupby
+from itertools import islice
+from parser import Position
+
+
+def roundrobin(*iterables):
+    "roundrobin('ABC', 'D', 'EF') --> A D E B F C"
+    # Recipe credited to George Sakkis
+    num_active = len(iterables)
+    nexts = cycle(iter(it).__next__ for it in iterables)
+    while num_active:
+        try:
+            for next in nexts:
+                yield next()
+        except StopIteration:
+            # Remove the iterator we just exhausted from the cycle.
+            num_active -= 1
+            nexts = cycle(islice(nexts, num_active))
+
 
 
 def lineOfSight(center, asteroid):
@@ -10,15 +30,26 @@ def lineOfSight(center, asteroid):
 
 
 
+LaserBase = namedtuple('LaserBase', ('phi', 'r', 'x', 'y'))
+class Laser(LaserBase):
+    def __init__(self, phi, r, x, y):
+        LaserBase.__init__(self, phi, r, x, y)
+
+    def __new__(cls, phi, r, x, y):
+        self = super(Laser, cls).__new__(cls, phi, r, x, y)
+
+
+
 def lineOfSightRotated(center, asteroid):
     x = float(asteroid.x - center.x)
-    y = -float(asteroid.y - center.y)
-    c = complex(x, y)
+    y = float(asteroid.y - center.y)
+    c = complex(y, -x)
     coordinates = cmath.polar(c)
-    if coordinates[1] == -3.141592653589793:
-        coordinates = (coordinates[0], -coordinates[1])
+    #if coordinates[1] == -3.141592653589793:
+    #    coordinates = (coordinates[0], -coordinates[1])
 
-    return coordinates
+    #return LaserBase((coordinates[1] - cmath.pi/2.) % cmath.pi, coordinates[0], asteroid.x, asteroid.y)
+    return LaserBase(coordinates[1], coordinates[0], asteroid.x, asteroid.y)
 
 
 
@@ -43,8 +74,10 @@ def radar(asteroids):
 
 
 def laser(center, asteroids):
-    sequence = [ ( lineOfSightRotated(center, asteroid), asteroid ) for asteroid in filter(lambda a: a!=center, asteroids) ]
+    sequence = [ lineOfSightRotated(center, asteroid) for asteroid in filter(lambda a: a!=center, asteroids) ]
 
-    sequence = sorted(sequence, key=lambda x: x[0][1])
+    sequence = sorted(sequence, key=lambda x: (x.phi, x.r))
+
+    sequence = list(roundrobin( *[list(g) for k, g in groupby(sequence, key=lambda x: x.phi)]))
 
     return sequence

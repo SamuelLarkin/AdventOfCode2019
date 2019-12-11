@@ -7,7 +7,6 @@ from radar import laser
 
 
 
-
 if __name__ == '__main__':
     with open('input', 'r') as f:
         asteroids = parse(f.readlines())
@@ -20,4 +19,9 @@ if __name__ == '__main__':
     center = radar(asteroids)[0]
     print(center)
     sequence = laser(center, asteroids)
+    #print(*sequence, sep='\n')
+
     print(*sequence, sep='\n')
+    answer = sequence[199]
+    # Answer: 517
+    print('Answer:', answer.x * 100 + answer.y)
