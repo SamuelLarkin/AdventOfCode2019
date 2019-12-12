@@ -6,6 +6,7 @@ import unittest
 from moons import influence
 from moons import step
 from moons import velocity
+from moons import energy
 from parser import parse
 
 
@@ -70,3 +71,18 @@ class TestStep(unittest.TestCase):
                  [-3,  1, -3],
                  [-1, -3,  1]])
 
+
+
+
+class TestEnergy(unittest.TestCase):
+    def test1(self):
+        e = energy([[2,1,3],[1,8,0],[3,6,1],[2,0,4]],
+                [[3,2,1],[1,1,3],[3,2,3],[1,1,1]])
+        self.assertEqual(e, 179)
+
+
+
+    def test1(self):
+        e = energy(np.array([[2,-1,3],[1,-8,0],[-3,-6,1],[2,0,4]]),
+                np.array([[3,2,-1],[-1,-1,3],[3,2,3],[-1,-1,-1]]))
+        self.assertEqual(e, 179)

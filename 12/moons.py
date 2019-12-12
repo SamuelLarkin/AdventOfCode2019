@@ -36,3 +36,14 @@ def step(planets_pos, planets_vel):
 
 
     return planets_pos + planets_vel, planets_vel
+
+
+
+def energy(planets_pos, planets_vel):
+    """
+    Calculates the total amount of energy.
+    planets_pos => (num_planet, num_coord)
+    planets_vel => (num_planet, num_coord)
+    """
+    answer = np.sum(np.absolute(planets_pos).sum(1) * np.absolute(planets_vel).sum(1))
+    return answer
