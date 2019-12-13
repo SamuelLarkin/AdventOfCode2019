@@ -3,6 +3,7 @@
 import numpy as np
 import unittest
 
+from moons import repeated
 from moons import influence
 from moons import step
 from moons import velocity
@@ -70,6 +71,14 @@ class TestStep(unittest.TestCase):
                  [ 1,  3,  3],
                  [-3,  1, -3],
                  [-1, -3,  1]])
+
+
+    def testRepeat(self):
+        planets_pos = parse(_data)
+        planets_vel = np.zeros_like(planets_pos)
+        self.assertEqual(planets_pos.tolist(), [[-1,0,2],[2,-10,-7],[4,-8,8],[3,5,-1]])
+
+        self.assertEqual(repeated(planets_pos, planets_vel), 2772)
 
 
 
