@@ -26,3 +26,18 @@ if __name__ == '__main__':
 
     # Answer: 213
     print('Part I:', len(tiles[2]))
+
+    # TODO: display map
+    
+
+
+    interpreter = Interpreter(pgm)
+    score = None
+    while True:
+        x = interpreter()
+        if x is None:
+            break
+        y = interpreter()
+        tile_id = interpreter()
+        if x == -1 and y == 0:
+            score = tile_id
