@@ -32,8 +32,7 @@ class TestReaction(unittest.TestCase):
         7 A, 1 E => 1 FUEL'''.splitlines()
         reactions = parse(data)
         expected = 31
-        import pudb; pudb.set_trace()
-        react(reactions)
+        self.assertEqual(react(reactions), expected)
 
 
     def test2(self):
@@ -44,7 +43,9 @@ class TestReaction(unittest.TestCase):
         5 B, 7 C => 1 BC
         4 C, 1 A => 1 CA
         2 AB, 3 BC, 4 CA => 1 FUEL'''.splitlines()
+        reactions = parse(data)
         expected = 165
+        self.assertEqual(react(reactions), expected)
 
 
     def test3(self):
@@ -57,7 +58,9 @@ class TestReaction(unittest.TestCase):
         7 DCFZ, 7 PSHF => 2 XJWVT
         165 ORE => 2 GPVTF
         3 DCFZ, 7 NZVS, 5 HKGWZ, 10 PSHF => 8 KHKGT'''.splitlines()
+        reactions = parse(data)
         expected = 13312
+        self.assertEqual(react(reactions), expected)
 
 
     def test4(self):
@@ -73,7 +76,9 @@ class TestReaction(unittest.TestCase):
         1 NVRVD => 8 CXFTF
         1 VJHF, 6 MNCFX => 4 RFSQX
         176 ORE => 6 VJHF'''.splitlines()
+        reactions = parse(data)
         expected = 180697
+        self.assertEqual(react(reactions), expected)
 
 
     def test5(self):
@@ -94,4 +99,6 @@ class TestReaction(unittest.TestCase):
         121 ORE => 7 VRPVC
         7 XCVML => 6 RJRHP
         5 BHXH, 4 VRPVC => 5 LTCX'''.splitlines()
+        reactions = parse(data)
         expected = 2210736
+        self.assertEqual(react(reactions), expected)

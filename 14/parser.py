@@ -1,22 +1,39 @@
 from collections import namedtuple
 
 
-Reaction = namedtuple('Reaction', ('quantity', 'compound', 'reactants'))
+Reaction = namedtuple('Reaction', ('quantity', 'compound', 'reactants', 'distance'))
 
 
 def subparse(a):
-    multiplier, compound = a.split()
-    return int(multiplier), compound
+    quantity, compound = a.strip().split()
+    return int(quantity), compound.strip()
+
+
+
+def distance(compound, reactions):
+    reaction = reactions[compound]
+    if reaction.distance is None:
+        reactants = reaction.reactants
+        _distance = max( distance(c, reactions) for c in reaction.reactants ) + 1
+        # Update our local copy then add it to the reactions.
+        reaction = reaction._replace(distance = _distance)
+        reactions[compound] = reaction
+
+    return reaction.distance
 
 
 
 def parse(iterable):
-    reactions = {}
+    """
+    Read in the the reactions.
+    """
+    reactions = { 'ORE': Reaction(quantity=0, compound='ORE', distance=0, reactants={}) }
     for line in iterable:
         reactants, yield_ = line.split('=>')
-        reactants = reactants.split(',')
-        yield_ = subparse(yield_)
-        reactants = { compound: multiplier for multiplier, compound in map(subparse, reactants) }
-        reactions[yield_[1]] = Reaction(yield_[0], yield_[1], reactants)
+        quantity, compound = subparse(yield_)
+        reactants = { c: q for q, c in map(subparse, reactants.split(',')) }
+        reactions[compound] = Reaction(quantity, compound, reactants, None)
+
+    distance('FUEL', reactions)
 
     return reactions
