@@ -23,11 +23,12 @@ def reaction_complete(reaction):
 
 
 
-def react(reactions):
+def react(reactions, wanted_quantity=1):
     """
     Return the required 'ORE' to process the reactions.
     """
     fuel = Counter(reactions['FUEL'].reactants)  # {'A': 7, 'E': 1}
+    fuel = { k: v*wanted_quantity for k, v in fuel.items() }
     while not reaction_complete(fuel):
         new_fuel = Counter(fuel)
         compound = sorted(fuel.keys(), key=lambda k: reactions[k].distance, reverse=True)[0]
@@ -41,3 +42,18 @@ def react(reactions):
         fuel = new_fuel + Counter()
 
     return fuel['ORE']
+
+
+
+def findMaximumYield(reactions, ore_quantity=1000000000000):
+    min_value = 1
+    max_value = ore_quantity
+    while True:
+        mid = (max_value + min_value) // 2
+        if min_value+1 == max_value:
+            return mid
+        required_ore = react(reactions, mid)
+        if required_ore < ore_quantity:
+            min_value = mid
+        elif required_ore > ore_quantity:
+            max_value = mid
