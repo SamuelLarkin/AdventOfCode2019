@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from collections import defaultdict
 from enum import IntEnum
 
 
@@ -40,14 +41,15 @@ def modes(op):
 
 
 class Interpreter:
-    def __init__(self, pgm, inp):
-        self.pgm = list(pgm) + [-1]*10000000  # Effectively making a deepcopy from readonly to write-enabled memory.
+    def __init__(self, pgm):
+        self.pgm = defaultdict(lambda: -1, enumerate(pgm))
         self.instruction_pointer = 0
         self.relative_base = 0
-        self.input = iter(inp)
+        self.input_buffer = []
+        self.input = iter(self.input_buffer)
 
 
-    def getInArg(self, offset, mode):
+    def _getInArg(self, offset, mode):
         a = self.pgm[self.instruction_pointer+offset]
         if mode == 0:
             return self.pgm[a]
@@ -59,7 +61,7 @@ class Interpreter:
             assert False, 'Unsupported mode'
 
 
-    def getOutArg(self, offset, mode):
+    def _getOutArg(self, offset, mode):
         a = self.pgm[self.instruction_pointer+offset]
         if mode == 0:
             return a
@@ -71,6 +73,20 @@ class Interpreter:
             assert False, 'Unsupported mode'
 
 
+    def giveInput(self, i):
+        """
+        Give the opCode Interpreter an input.
+        """
+        self.input_buffer.append(i)
+
+
+    def giveInputs(self, i):
+        """
+        Give the opCode Interpreter an input.
+        """
+        self.input_buffer.extend(i)
+
+
     # NOT __next__
     def __iter__(self):
         while self.instruction_pointer < len(self.pgm):
@@ -78,29 +94,29 @@ class Interpreter:
 
             # Addition
             if opcode == opCodeType.ADD:
-                val_a = self.getInArg(1, mode1)
-                val_b = self.getInArg(2, mode2)
-                self.pgm[self.getOutArg(3, mode3)] = val_a + val_b
+                val_a = self._getInArg(1, mode1)
+                val_b = self._getInArg(2, mode2)
+                self.pgm[self._getOutArg(3, mode3)] = val_a + val_b
                 self.instruction_pointer += 4
 
             # Multiplication
             elif opcode == opCodeType.MUL:
-                val_a = self.getInArg(1, mode1)
-                val_b = self.getInArg(2, mode2)
-                self.pgm[self.getOutArg(3, mode3)] = val_a * val_b
+                val_a = self._getInArg(1, mode1)
+                val_b = self._getInArg(2, mode2)
+                self.pgm[self._getOutArg(3, mode3)] = val_a * val_b
                 self.instruction_pointer += 4
 
             # Opcode 3 takes a single integer as input and saves it to the position
             # given by its only parameter. For example, the instruction 3,50 would
             # take an input value and store it at address 50.
             elif opcode == opCodeType.INPUT:
-                self.pgm[self.getOutArg(1, mode1)] = next(self.input)
+                self.pgm[self._getOutArg(1, mode1)] = next(self.input)
                 self.instruction_pointer += 2
 
             # Opcode 4 outputs the value of its only parameter. For example, the
             # instruction 4,50 would output the value at address 50.
             elif opcode == opCodeType.OUTPUT:
-                val_a = self.getInArg(1, mode1)
+                val_a = self._getInArg(1, mode1)
                 self.instruction_pointer += 2
                 yield val_a
 
@@ -108,8 +124,8 @@ class Interpreter:
             # the instruction pointer to the value from the second parameter.
             # Otherwise, it does nothing.
             elif opcode == opCodeType.JUMP_IF_TRUE:
-                val_a = self.getInArg(1, mode1)
-                val_b = self.getInArg(2, mode2)
+                val_a = self._getInArg(1, mode1)
+                val_b = self._getInArg(2, mode2)
                 if val_a != 0:
                     self.instruction_pointer = val_b
                 else:
@@ -119,8 +135,8 @@ class Interpreter:
             # the instruction pointer to the value from the second parameter.
             # Otherwise, it does nothing.
             elif opcode == opCodeType.JUMP_IF_FALSE:
-                val_a = self.getInArg(1, mode1)
-                val_b = self.getInArg(2, mode2)
+                val_a = self._getInArg(1, mode1)
+                val_b = self._getInArg(2, mode2)
                 if val_a == 0:
                     self.instruction_pointer = val_b
                 else:
@@ -130,25 +146,25 @@ class Interpreter:
             # parameter, it stores 1 in the position given by the third parameter.
             # Otherwise, it stores 0.
             elif opcode == opCodeType.LESS_THAN:
-                val_a = self.getInArg(1, mode1)
-                val_b = self.getInArg(2, mode2)
-                self.pgm[self.getOutArg(3, mode3)] = 1 if val_a < val_b else 0
+                val_a = self._getInArg(1, mode1)
+                val_b = self._getInArg(2, mode2)
+                self.pgm[self._getOutArg(3, mode3)] = 1 if val_a < val_b else 0
                 self.instruction_pointer += 4
 
             # Opcode 8 is equals: if the first parameter is equal to the second
             # parameter, it stores 1 in the position given by the third parameter.
             # Otherwise, it stores 0.
             elif opcode == opCodeType.EQUAL:
-                val_a = self.getInArg(1, mode1)
-                val_b = self.getInArg(2, mode2)
-                self.pgm[self.getOutArg(3, mode3)] = 1 if val_a == val_b else 0
+                val_a = self._getInArg(1, mode1)
+                val_b = self._getInArg(2, mode2)
+                self.pgm[self._getOutArg(3, mode3)] = 1 if val_a == val_b else 0
                 self.instruction_pointer += 4
 
             # adjusts the relative base by the value of its only parameter. The
             # relative base increases (or decreases, if the value is negative)
             # by the value of the parameter.
             elif opcode == opCodeType.BASE:
-                val_a = self.getInArg(1, mode1)
+                val_a = self._getInArg(1, mode1)
                 self.relative_base += val_a
                 self.instruction_pointer += 2
 
