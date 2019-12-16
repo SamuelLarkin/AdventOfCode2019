@@ -79,12 +79,16 @@ class Interpreter:
         """
         self.input_buffer.append(i)
 
+        return self
+
 
     def giveInputs(self, i):
         """
         Give the opCode Interpreter an input.
         """
         self.input_buffer.extend(i)
+
+        return self
 
 
     # NOT __next__
