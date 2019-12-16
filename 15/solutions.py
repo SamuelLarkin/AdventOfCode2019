@@ -43,6 +43,10 @@ opposite_move = {
 
 
 
+origine = (21, 21)
+
+
+
 def display(grid):
     pixels = ( '#', ' ', '0', '*', '.' )
     minx, maxx = min(x for x,y in grid), max(x for x,y in grid)
@@ -50,9 +54,9 @@ def display(grid):
     print((minx, miny), (maxx, maxy))
     #print(grid)
     print(len(grid))
-    for y in range(maxy - miny + 1, 0, -1):
-        for x in range(maxx - minx + 1):
-            if (x,y) == (21,21):
+    for y in range(miny, maxy+1):
+        for x in range(minx, maxx+1):
+            if (x,y) == origine:
                 print('S', sep='', end='')
             else:
                 print(pixels[grid.get((x,y), Status.EMPTY)], sep='', end='')
@@ -64,10 +68,11 @@ def buildGrid(pgm):
     """
     Map out the oxygen locations on the fog-of-warred grid.
     """
+    print('Building/Discovering the grid...')
     edges = defaultdict(set)
     oxygen_locations = []
 
-    def stepper(grid, position=(21,21), distance=0):
+    def stepper(grid, position=origine, distance=0):
         for direction in Direction:
             move = moves[direction.value]
             new_postion = (position[0]+move[0], position[1]+move[1])
@@ -86,7 +91,9 @@ def buildGrid(pgm):
                 #assert status == Status.MOVED
             elif status == Status.OXYGEN:
                 grid[new_postion] = Status.OXYGEN
-                oxygen_locations.append((distance, new_postion))
+                oxygen_locations.append(new_postion)
+                interpreter.giveInput(opposite_move[direction.value])
+                status = Status(next(step))
             else:
                 raise Exception(f'Invalid status {status}')
 
@@ -94,40 +101,52 @@ def buildGrid(pgm):
     step = iter(interpreter)
     grid = {}
     stepper(grid)
-    print(oxygen_locations)
+    assert len(oxygen_locations) == 1, f'oxygen_locations: {oxygen_locations}'
+    oxygen_location = oxygen_locations[0]
+    print('Oxygen location:', oxygen_location)
     print([ p for p, s in grid.items() if s == Status.OXYGEN ])
     display(grid)
-    return grid, edges, oxygen_locations
+
+    return grid, edges, oxygen_location
 
 
 
-def partI(pgm):
-    grid, edges, oxygen_locations = buildGrid(pgm)
+def partI(grid, edges, oxygen_location):
+    """
+    Shortest path to the oxygen panel
+    """
+    print('Finding shortest path to oxygen panel...')
     graph = nx.Graph()
     for v1, e in edges.items():
         for v2 in e:
             if grid[v2] != Status.WALL:
                 graph.add_edge(v1, v2)
-    path = nx.shortest_path(graph, (21,21), (33, 9))
+    path = nx.shortest_path(graph, origine, oxygen_location)
     print(path)
     print(len(path))
-    print(nx.shortest_path_length(graph, (21,21), (33, 9)))
-    print(nx.shortest_path_length(graph, (21,21), (25, 17)))
+    answer = nx.shortest_path_length(graph, origine, oxygen_location)
+    print('Part I:', answer)
+    assert answer == 208
     # Update the grid with our path to the oxygen panel
     grid.update({ p: Status.PATH for p in path })
     display(grid)
 
 
 
-def partII(pgm):
-    grid, edges, oxygen_locations = buildGrid(pgm)
+def partII(grid, edges, oxygen_location):
+    """
+    How long to fill the room
+    """
+    print('Computing time to fill room with oxygen...')
     graph = nx.Graph()
     for v1, e in edges.items():
         for v2 in e:
             if grid[v2] != Status.WALL:
                 graph.add_edge(v1, v2)
-    oxygen = (33,9)
-    print(nx.eccentricity(G, v=oxygen) + 1)  # part 2
+    # Answer: 306
+    answer = nx.eccentricity(graph, v=oxygen_location)
+    print('Part II:', answer)
+    assert answer == 306
 
 
 
@@ -139,8 +158,12 @@ if __name__ == '__main__':
 
     with open('input', 'r') as f:
         pgm = parse(f.readline())
+    grid, edges, oxygen_location = buildGrid(pgm)
 
     if True:
         # Answer: 208 too low
         # oxygen: (12, 12)
-        partI(pgm)
+        partI(grid, edges, oxygen_location)
+
+    if True:
+        partII(grid, edges, oxygen_location)
