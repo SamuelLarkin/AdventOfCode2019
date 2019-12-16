@@ -21,8 +21,8 @@ if __name__ == '__main__':
     answer = sorted(answers)[-1]
 
     print(answers)
-    # Answer: 51679
     print('PartI:', answer)
+    assert answer == 51679
 
 
     _input = 0
@@ -30,5 +30,5 @@ if __name__ == '__main__':
     answer = sorted(answers)[-1]
 
     print(answers)
-    # Answer: 51679
     print('PartII:', answer)
+    assert answer == 19539216
