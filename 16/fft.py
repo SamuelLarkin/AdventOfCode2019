@@ -5,6 +5,7 @@ from itertools import chain
 from itertools import cycle
 from itertools import islice
 from itertools import repeat
+from tqdm import trange
 
 
 
@@ -62,11 +63,17 @@ def fft(data, num_phases:int = 100):
 
     for _ in range(num_phases):
         data = np.mod(np.absolute(np.sum(np.multiply(data, coeff), axis=1)), 10)
-        #data = np.multiply(data, coeff)
-        #print(data)
-        #data = np.absolute(data.sum(axis=1))
-        #print(data)
-        #data = np.mod(data, 10)
-        #print(data)
 
     return ''.join(map(str, data.tolist()))
+
+
+
+def partII(message):
+    offset = int(message[:7])
+    message = [ int(x) for x in message ]
+    v = (10000*message)[offset:] # tail for part2
+    for _ in trange(100):
+        for i in trange(len(v)-1,0,-1): # need to do calculations from the end!!! that's the key idea!
+            v[i-1] = (v[i-1] + v[i]) % 10
+
+    return ''.join(map(str, v[:8]))

@@ -49,3 +49,15 @@ class TestFFT(unittest.TestCase):
 
     def test3(self):
         self.assertEqual(fft('69317163492948606335995924319873')[:8], '52432133')
+
+
+
+class TestPartII(unittest.TestCase):
+    def test1(self):
+        message ='03036732577212944063491565474664'
+        offset = message[:7]
+        self.assertEqual(offset, '0303673')
+        new_message = fft(message)
+        print(new_message)
+        start = int(offset) % len(new_message)
+        self.assertEqual(new_message[start: start+8], '84462026')
