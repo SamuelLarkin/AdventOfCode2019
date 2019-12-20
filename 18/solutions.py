@@ -1,18 +1,13 @@
 #!/usr/bin/env  python3
 
-from tunnel import exploreBFS2
-from tunnel import scan1
-from tunnel import buildGraph
-from tunnel import simplifyGraph
+import tunnel
+
 
 
 def partI():
     with open('input', 'r') as f:
-        grid, keys, doors, entrance = scan1(f)
-    G = buildGraph(grid)
-    G = simplifyGraph(G, grid, keys, doors, entrance)
-    d = exploreBFS2(G)
-    print(d)
+        answer = tunnel.partI(f)
+    print('PartI:', answer)
 
 
 

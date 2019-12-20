@@ -175,16 +175,15 @@ def exploreBFS2(G0):
         return g
 
     works = []
-    memory = {}
+    seen_work = set()
     # (distance, node/position, acquired_keys, G)
-    work = (0, '@', tuple())
+    work = (0, '@', tuple(), G0)
     heapq.heappush(works, work)
-    memory[work] = G0
+    seen_work.add(work)
     while len(works) > 0:
-        print(len(works))
-        print(*works, sep='\n')
-        distance, node, acquired_keys = heapq.heappop(works)
-        G = memory[(distance, node, acquired_keys)]
+        #print(len(works))
+        #print(*works, sep='\n')
+        distance, node, acquired_keys, G = heapq.heappop(works)
         if len(G.nodes) == 1:
             return distance
 
@@ -195,9 +194,10 @@ def exploreBFS2(G0):
                 distance + G.edges[node, neighbour]['weight'],
                 neighbour, 
                 acquired_keys + (neighbour,) if isKey(neighbour) else acquired_keys,
-                )
-            memory[work] = updateGraph(G, node, neighbour)
-            heapq.heappush(works, work)
+                updateGraph(G, node, neighbour))
+            if work[:-1] not in seen_work:
+                heapq.heappush(works, work)
+                seen_work.add(work[:-1])
 
     return distance
 
@@ -220,3 +220,13 @@ def loadTunnel(data = None):
     print(min(a))
 
     return min(a)[0]
+
+
+
+def partI(data):
+    grid, keys, doors, entrance = scan1(data)
+    G = buildGraph(grid)
+    G = simplifyGraph(G, grid, keys, doors, entrance)
+    d = exploreBFS2(G)
+
+    return d

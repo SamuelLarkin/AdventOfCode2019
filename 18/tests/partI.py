@@ -2,7 +2,7 @@
 
 import unittest
 
-from tunnel import loadTunnel
+from tunnel import partI
 
 
 
@@ -15,7 +15,7 @@ class TestPartI(unittest.TestCase):
         #b.A.@.a#
         #########'''.splitlines()
         expected = 8
-        self.assertEqual(loadTunnel(data), expected)
+        self.assertEqual(partI(data), expected)
 
 
     def test2(self):
@@ -28,7 +28,7 @@ class TestPartI(unittest.TestCase):
         #d.....................#
         ########################'''.splitlines()
         expected = 86
-        self.assertEqual(loadTunnel(data), expected)
+        self.assertEqual(partI(data), expected)
 
 
     def test3(self):
@@ -41,7 +41,7 @@ class TestPartI(unittest.TestCase):
         #.....@.a.B.c.d.A.e.F.g#
         ########################'''.splitlines()
         expected = 132
-        self.assertEqual(loadTunnel(data), expected)
+        self.assertEqual(partI(data), expected)
 
 
     def test4(self):
@@ -58,7 +58,7 @@ class TestPartI(unittest.TestCase):
         #l.F..d...h..C.m#
         #################'''.splitlines()
         expected = 136
-        self.assertEqual(loadTunnel(data), expected)
+        self.assertEqual(partI(data), expected)
 
 
     def test5(self):
@@ -72,4 +72,4 @@ class TestPartI(unittest.TestCase):
         ###g#h#i################
         ########################'''.splitlines()
         expected = 81
-        self.assertEqual(loadTunnel(data), expected)
+        self.assertEqual(partI(data), expected)
