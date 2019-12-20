@@ -1,5 +1,6 @@
 import networkx as nx
 import heapq
+from itertools import combinations
 
 
 
@@ -85,20 +86,14 @@ def simplifyGraph(G, grid, keys, doors, entrance):
     #import pudb; pudb.set_trace()
     Gs = nx.Graph()
     obj = keys | doors | {entrance}
-    for p1 in obj:
-        for p2 in obj:
-            if p1 == p2:
-                continue
-            path = nx.shortest_path(G, p1, p2)
-            if set(path[1:-1]) & (obj):
-                continue
-            Gs.add_edge(p1, p2, weight=len(path)-1)
+    for o in obj:
+        Gs.add_node(grid[o], coord=o)
 
-    Gs.add_node(entrance, type='entrance', label=None)
-    for k in keys:
-        Gs.add_node(k, type='key', label=grid[k])
-    for d in doors:
-        Gs.add_node(d, type='door', label=grid[d])
+    for p1, p2 in combinations(obj, 2):
+        path = nx.shortest_path(G, p1, p2)
+        if set(path[1:-1]) & obj:
+            continue
+        Gs.add_edge(grid[p1], grid[p2], weight=len(path)-1)
 
     #Gs.nodes.data('label')
     #NodeDataView({(22, 3): 'g', (20, 3): 'F', (8, 3): 'a', (6, 3): None, (10, 3): 'B', (18, 3): 'e', (16, 3): 'A', (14, 3): 'd', (20, 1): 'D', (18, 1): 'C', (22, 1): 'f', (16, 1): 'b', (12, 3): 'c'}, data='label')
@@ -146,6 +141,65 @@ def exploreBFS(G, grid, keys, doors, entrance):
                 acquired_keys & {GG.nodes[neighbour]['label']} if GG.nodes[neighbour]['type'] == 'key' else acquired_keys,
                 updateGraph(GG, node, neighbour))
             heapq.heappush(works, work)
+
+
+
+def isDoor(node):
+    return 'A' <= node <= 'Z'
+
+
+
+def isKey(node):
+    return 'a' <= node <= 'z'
+
+
+def doorKey(door):
+    """
+    What is the key needed for this door.
+    """
+    return door.lower()
+
+
+
+def exploreBFS2(G0):
+    #import pudb; pudb.set_trace()
+    def updateGraph(g0, f, t):
+        # [networkx.Graph.copy](https://networkx.github.io/documentation/stable/reference/classes/generated/networkx.Graph.copy.html)
+        #g2 = nx.Graph(g)
+        g = g0.copy(as_view=False)
+        for neighbour in g0[f]:
+            if neighbour == t:
+                continue
+            g.add_edge(t, neighbour, weight=nx.shortest_path_length(g0, t, neighbour, 'weight'))
+        g.remove_node(f)
+        return g
+
+    works = []
+    memory = {}
+    # (distance, node/position, acquired_keys, G)
+    work = (0, '@', tuple())
+    heapq.heappush(works, work)
+    memory[work] = G0
+    while len(works) > 0:
+        print(len(works))
+        print(*works, sep='\n')
+        distance, node, acquired_keys = heapq.heappop(works)
+        G = memory[(distance, node, acquired_keys)]
+        if len(G.nodes) == 1:
+            return distance
+
+        for neighbour in G[node]:
+            if isDoor(neighbour) and doorKey(neighbour) not in acquired_keys:
+                continue
+            work = (
+                distance + G.edges[node, neighbour]['weight'],
+                neighbour, 
+                acquired_keys + (neighbour,) if isKey(neighbour) else acquired_keys,
+                )
+            memory[work] = updateGraph(G, node, neighbour)
+            heapq.heappush(works, work)
+
+    return distance
 
 
 

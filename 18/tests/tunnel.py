@@ -7,6 +7,7 @@ from tunnel import buildGraph
 from tunnel import loadTunnel
 from tunnel import simplifyGraph
 from tunnel import exploreBFS
+from tunnel import exploreBFS2
 
 
 
@@ -59,7 +60,7 @@ class TestSimplifyGraph(unittest.TestCase):
         G = simplifyGraph(G, grid, keys, doors, entrance)
         print(*sorted(G.nodes), sep='\n')
         print(*sorted(G.edges), sep='\n')
-        print(G[entrance])
+        print(G['@'])
         print(*list(G.adjacency()), sep='\n')
         self.assertEqual(len(G.nodes), 13)
         self.assertEqual(len(G.edges), 12)
@@ -80,3 +81,14 @@ class TestExploreBFS(unittest.TestCase):
         G = simplifyGraph(G, grid, keys, doors, entrance)
         d = exploreBFS(G, grid, keys, doors, entrance)
         print(d)
+
+
+
+class TestExploreBFS2(unittest.TestCase):
+    def test1(self):
+        grid, keys, doors, entrance = scan1(data2)
+        G = buildGraph(grid)
+        G = simplifyGraph(G, grid, keys, doors, entrance)
+        d = exploreBFS2(G)
+        print(d)
+        self.assertEqual(d, 132)
