@@ -8,7 +8,9 @@ def second_shortest_path(graph, start, end):
     #if len(nx.shortest_path(g, start, end)) == 2:
     #    g.remove_edge(start, end)
 
+    print(nx.shortest_path(g, start, end, weight='weight'))
     return nx.shortest_path_length(g, start, end, weight='weight')
+
 
 
 

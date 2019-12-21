@@ -1,5 +1,6 @@
 def printEdges(g):
-    print(*map(lambda nn: tuple(map(lambda n: g.nodes[n]['name'], nn)), g.edges), sep='\n')
+    #print(*map(lambda nn: tuple(map(lambda n: g.nodes[n]['name'], nn)), g.edges), sep='\n')
+    print(*g.edges, sep='\n')
 
 
 
