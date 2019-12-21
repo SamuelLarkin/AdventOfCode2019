@@ -104,6 +104,10 @@ def _collapseLabels(G0):
 
 
 def _findPortalLinks(G0):
+    """
+    Finds the tile that have a name.
+    Tiles with a name are portals.
+    """
     # Figure out the portals' locations
     portals = defaultdict(lambda: [])
     for node, name in ( (node, name) for node, name in G0.nodes(data='name') if name != '.' ):
@@ -114,13 +118,15 @@ def _findPortalLinks(G0):
 
 
 def _connectWrapPortal(G0):
+    """
+    """
     for name, links in _findPortalLinks(G0).items():
         if len(links) == 1:
-            G0 = nx.relabel_nodes(G0, {tuple(links)[0]: name}, copy=False)
+            node = tuple(links)[0]
+            G0 = nx.relabel_nodes(G0, {node: name}, copy=False)
         elif len(links) == 2:
-            G0.add_edge(*tuple(links), name=name)
-        elif name == '.':
-            pass
+            u, v = tuple(links)
+            G0.add_edge(u, v, name=name)
         else:
             assert False, f'name: {name} links: {links}'
 
@@ -144,7 +150,7 @@ def _connectWrapPortalMultilevel(G0, W, H):
         for (u, v, name) in G0.edges.data('name', default='.'):
             G.add_edge((*u, l), (*v, l), name=name)
 
-    print(*portals.items(), sep='\n')
+    #print(*portals.items(), sep='\n')
     # Connect the portal from multiple levels.
     for portal_name, coords, in portals.items():
         if len(coords) == 1:
