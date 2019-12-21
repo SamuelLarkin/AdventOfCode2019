@@ -2,6 +2,7 @@ import networkx as nx
 
 from utils import printGrid
 from itertools import combinations
+from collections import defaultdict
 
 
 
@@ -48,6 +49,11 @@ def _fullPath(grid):
 
 
 
+def computeName(info):
+    return ''.join(map(lambda x: x[1], sorted(info)))
+
+
+
 def _collapseLabels(G0):
     """
     """
@@ -61,13 +67,39 @@ def _collapseLabels(G0):
         if len(neighbours) == 1:
             for neighbour in neighbours:
                 # Names are in lexical order
-                name = ''.join(sorted((G0.nodes[node]['name'], G0.nodes[neighbour]['name'])))
+                name = computeName( ((node, G0.nodes[node]['name']), (neighbour, G0.nodes[neighbour]['name'])) )
                 G0.nodes[neighbour]['name'] = name
-                nodes_to_delete.append(node)
+            nodes_to_delete.append(node)
 
     for node in nodes_to_delete:
         G0.remove_node(node)
     del(nodes_to_delete)
+
+    # Label the door ways
+    labels = defaultdict(lambda: set())
+    nodes_to_delete = []
+    #import pudb; pudb.set_trace()
+    for node in G0.nodes():
+        neighbours = G0[node]
+        if len(neighbours) == 1:
+            name = G0.nodes[node]['name']
+            for neighbour in neighbours:
+                labels[name].add(neighbour)
+            nodes_to_delete.append(node)
+
+    for node in nodes_to_delete:
+        G0.remove_node(node)
+    del(nodes_to_delete)
+
+    for name, links in labels.items():
+        if len(links) == 1:
+            G0 = nx.relabel_nodes(G0, {tuple(links)[0]: name}, copy=False)
+        elif len(links) == 2:
+            G0.add_edge(*tuple(links), name=name)
+        elif name == '.':
+            pass
+        else:
+            assert False, f'name: {name} links: {links}'
 
     return G0
 
@@ -123,6 +155,6 @@ def parse(iterable):
     grid = _buildGrid(iterable)
     G0   = _fullPath(grid)
     G0   = _collapseLabels(G0)
-    G    = _simplifyGraph(G0)
+    #G    = _simplifyGraph(G0)
 
-    return G
+    return G0
