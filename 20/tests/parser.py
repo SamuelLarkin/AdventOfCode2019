@@ -4,12 +4,14 @@ import unittest
 import networkx as nx
 
 from parser import parse
+from parser import partII
 from parser import _buildGrid
 from parser import _fullPath
 from parser import _collapseLabels
 from parser import _simplifyGraph
 from .data import data1
 from .data import data2
+from .data import data3
 from collections import Counter
 
 

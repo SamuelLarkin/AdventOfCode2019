@@ -1,18 +1,20 @@
 #!/usr/bin/env  python3
 
 import networkx as nx
-
-from parser import parse
+import parser
 
 
 
 def partI(data):
-    g = parse(data)
+    answer = parser.partI(data)
+    print('PartI:', answer)
+    assert answer, 696
 
-    start = 'AA'
-    end = 'ZZ'
 
-    answer = nx.shortest_path_length(g, start, end)
+
+def partII(data):
+    answer = parser.partII(data)
+    # 3654 too low
     print('PartI:', answer)
     assert answer, 696
 
@@ -26,3 +28,6 @@ if __name__ == '__main__':
 
     if True:
         partI(data)
+
+    if True:
+        partII(data)

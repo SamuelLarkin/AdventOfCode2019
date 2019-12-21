@@ -3,6 +3,7 @@ import networkx as nx
 from utils import printGrid
 from itertools import combinations
 from collections import defaultdict
+from collections import Counter
 
 
 
@@ -25,7 +26,7 @@ def _buildGrid(iterable):
     if False:
         printGrid(grid, data)
 
-    return grid
+    return grid, len(iterable[0]), len(iterable)
 
 
 
@@ -54,15 +55,23 @@ def computeName(info):
 
 
 
+def isOuter(node, W, H):
+    x, y = node
+    return (x <= 2 or x >= W-2) and (y <= 2 or y >= H-2)
+
+
+def isInner(node, W, H):
+    x, y = node
+    return (2 < x < W-3) and (2 < y < H-3)
+
+
+
 def _collapseLabels(G0):
     """
     """
     # Fold the double letter node names
     nodes_to_delete = []
-    for node in G0.nodes():
-        if G0.nodes[node]['name'] == '.':
-            continue
-
+    for node in ( node for node, name in G0.nodes(data='name') if name != '.' ):
         neighbours = G0[node]
         if len(neighbours) == 1:
             for neighbour in neighbours:
@@ -76,22 +85,36 @@ def _collapseLabels(G0):
     del(nodes_to_delete)
 
     # Label the door ways
-    labels = defaultdict(lambda: set())
     nodes_to_delete = []
     #import pudb; pudb.set_trace()
-    for node in G0.nodes():
+    for node in ( node for node, name in G0.nodes(data='name') if name != '.' ):
         neighbours = G0[node]
         if len(neighbours) == 1:
             name = G0.nodes[node]['name']
             for neighbour in neighbours:
-                labels[name].add(neighbour)
+                G0.nodes[neighbour]['name'] = name
             nodes_to_delete.append(node)
 
     for node in nodes_to_delete:
         G0.remove_node(node)
     del(nodes_to_delete)
 
-    for name, links in labels.items():
+    return G0
+
+
+
+def _findPortalLinks(G0):
+    # Figure out the portals' locations
+    portals = defaultdict(lambda: [])
+    for node, name in ( (node, name) for node, name in G0.nodes(data='name') if name != '.' ):
+        portals[name].append(node)
+
+    return portals
+
+
+
+def _connectWrapPortal(G0):
+    for name, links in _findPortalLinks(G0).items():
         if len(links) == 1:
             G0 = nx.relabel_nodes(G0, {tuple(links)[0]: name}, copy=False)
         elif len(links) == 2:
@@ -102,6 +125,48 @@ def _collapseLabels(G0):
             assert False, f'name: {name} links: {links}'
 
     return G0
+
+
+
+def _connectWrapPortalMultilevel(G0, W, H):
+    c = Counter(a for n, a in G0.nodes(data='name'))
+
+    # Figure out the portals' locations
+    portals   = _findPortalLinks(G0)
+    num_level = len(portals) + 1
+
+    # Create the multilevel Maze
+    G = nx.Graph()
+    for l in range(num_level):
+        for node, name in G0.nodes(data='name'):
+            G.add_node((*node, l), name=name)
+
+        for (u, v, name) in G0.edges.data('name', default='.'):
+            G.add_edge((*u, l), (*v, l), name=name)
+
+    print(*portals.items(), sep='\n')
+    # Connect the portal from multiple levels.
+    for portal_name, coords, in portals.items():
+        if len(coords) == 1:
+            # This is either the entrance AA or the exit ZZ.
+            coord = tuple(coords)[0] + (0,)
+            G = nx.relabel_nodes(G, {coord: portal_name}, copy=False)
+            for l in range(1, num_level-1):
+                coord = tuple(coords)[0] + (l,)
+                G = nx.relabel_nodes(G, {coord: (portal_name, l)}, copy=False)
+        elif len(coords) == 2:
+            for l in range(num_level-1):
+                inner, outer = coords
+                if isInner(outer, W, H):
+                    inner, outer = outer, inner
+                inner = (*inner, l)
+                outer = (*outer, l+1)
+                G.add_edge(inner, outer, name=portal_name)
+                G.add_edge(outer, inner, name=portal_name)
+        else:
+            assert False, f'{portal_name}, {coords}'
+
+    return G
 
 
 
@@ -152,9 +217,33 @@ def _simplifyGraph(G0):
 def parse(iterable):
     """
     """
-    grid = _buildGrid(iterable)
+    grid, W, H = _buildGrid(iterable)
     G0   = _fullPath(grid)
     G0   = _collapseLabels(G0)
+    G0   = _connectWrapPortal(G0)
     #G    = _simplifyGraph(G0)
 
     return G0
+
+
+
+def partI(data, start='AA', end='ZZ'):
+    grid, W, H = _buildGrid(data)
+    G   = _fullPath(grid)
+    G   = _collapseLabels(G)
+    G   = _connectWrapPortal(G)
+
+    return nx.shortest_path_length(G, start, end)
+
+
+
+def partII(data, start='AA', end='ZZ'):
+    grid, W, H = _buildGrid(data)
+    G   = _fullPath(grid)
+    G   = _collapseLabels(G)
+    G   = _connectWrapPortalMultilevel(G, W, H)
+    #print(*G.nodes, sep='\n')
+    #print(*((u,v,name) for u,v,name in G.edges.data('name', default=None) if name is not None), sep='\n')
+    #print(*((u,v,name) for u,v,name in G.edges.data('name', default=None) if name is None), sep='\n')
+
+    return nx.shortest_path_length(G, start, end)
